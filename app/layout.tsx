@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
+import { SheetProvider } from "@/context/SheetContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,15 +20,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} relative`}>
-        <Navbar />
+        <SheetProvider>
+          <Navbar />
 
-        <div className="flex">
-          <Sidebar />
+          <div className="flex">
+            <Sidebar />
 
-          <section className="flex min-h-screen flex-1 flex-col md:px-10">
-            <div className="w-full">{children}</div>
-          </section>
-        </div>
+            <section className="flex min-h-screen flex-1 flex-col px-5">
+              <div className="w-full">{children}</div>
+            </section>
+          </div>
+        </SheetProvider>
       </body>
     </html>
   );
