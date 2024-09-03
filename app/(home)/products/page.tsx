@@ -13,6 +13,8 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useSheetContext } from '@/context/SheetContext';
+import Link from 'next/link';
+import { SkeletonGrid } from '@/components/Skeleton';
 
 type Product = {
     name: string;
@@ -30,12 +32,16 @@ const formatDate = (dateString: string) => {
 
 const ProductList = () => {
     const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const { isSheetOpen, setIsSheetOpen } = useSheetContext();
 
     useEffect(() => {
-        const storedProducts = JSON.parse(localStorage.getItem("products") || "[]") as Product[];
-        setProducts(storedProducts);
+        setTimeout(() => {
+            const storedProducts = JSON.parse(localStorage.getItem("products") || "[]") as Product[];
+            setProducts(storedProducts);
+            setLoading(false);
+        }, 1000);
     }, []);
 
     const handleAddOrUpdateProduct = (product: Product) => {
@@ -66,78 +72,87 @@ const ProductList = () => {
 
     return (
         <div className="py-5">
-            {products.length > 0 && (
-                <>
-                    <div className="grid grid-cols-7 gap-2 text-left text-sm font-semibold mb-3">
-                        <div className="col-span-3">Name</div>
-                        <div className="lg:pl-10">Pricing</div>
-                        <div className="lg:pl-10">Created</div>
-                        <div className="lg:pl-10">Updated</div>
-                        <div className="text-right">
-                            <span className="block w-[40%] ml-auto">&nbsp;</span>
-                        </div>
-                    </div>
-                    <hr className="border-gray-300 mb-3" />
-                </>
-            )}
-
-            {products.length === 0 ? (
-                <div className="flex flex-col items-center justify-center lg:h-[20rem] h-[15rem] bg-white border rounded shadow-md mx-auto lg:w-[30rem] w-[22rem]">
-                    <h2 className="text-xl font-semibold mb-5">No products in inventory</h2>
-                    <p className="text-gray-500 mb-4 text-center">Start adding products to manage your inventory.</p>
-                    <Button
-                        onClick={() => {
-                            setSelectedProduct(null);
-                            setIsSheetOpen(true);
-                        }}
-                        className='bg-black text-white rounded-2xl hover:bg-black'>
-                        Add Product
-                    </Button>
-                </div>
+            {loading ? (
+                <SkeletonGrid count={20} />
             ) : (
-                products.map((product, index) => (
-                    <React.Fragment key={index}>
-                        <div className="grid grid-cols-7 gap-2 items-center mb-3">
-                            <div className="col-span-3 flex items-center">
-                                {product.image && (
-                                    <Image
-                                        src={product.image}
-                                        alt={product.name}
-                                        className="rounded"
-                                        width={40}
-                                        height={40}
-                                    />
-                                )}
-                                <span className="ml-2 text-xs">{product.name}</span>
+                <>
+                    {products.length > 0 && (
+                        <>
+                            <div className="grid lg:grid-cols-7 grid-cols-6 gap-2 text-left text-sm font-semibold mb-3">
+                                <div className="lg:col-span-3 col-span-2">Name</div>
+                                <div className="lg:pl-10">Pricing</div>
+                                <div className="lg:pl-10 ">Created</div>
+                                <div className="lg:pl-10 pl-2">Updated</div>
+                                <div className="text-right">
+                                    <span className="block w-[40%] ml-auto">&nbsp;</span>
+                                </div>
                             </div>
-                            <div className='lg:pl-10 text-xs'>₦{product.price.toFixed(2)}</div>
-                            <div className='lg:pl-10 text-xs'>{formatDate(product.created)}</div>
-                            <div className='lg:pl-10 text-xs'>{formatDate(product.updated)}</div>
-                            <div className="text-right">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost">
-                                            <Ellipsis />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent className="w-48 bg-white">
-                                        <DropdownMenuItem
-                                            onClick={() => handleEditProduct(product)}
-                                            className='cursor-pointer'>
-                                            Edit Product
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            onClick={() => handleDeleteProduct(index)}
-                                            className='cursor-pointer'>
-                                            <p className='text-red-700'>Delete Product</p>
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
+                            <hr className="border-gray-300 mb-3" />
+                        </>
+                    )}
+
+                    {products.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center lg:h-[20rem] h-[15rem] bg-white border rounded shadow-md mx-auto lg:w-[30rem] w-[22rem]">
+                            <h2 className="text-xl font-semibold mb-5">No products in inventory</h2>
+                            <p className="text-gray-500 mb-4 text-center">Start adding products to manage your inventory.</p>
+                            <Button
+                                onClick={() => {
+                                    setSelectedProduct(null);
+                                    setIsSheetOpen(true);
+                                }}
+                                className='bg-black text-white rounded-2xl hover:bg-black'>
+                                Add Product
+                            </Button>
                         </div>
-                        <hr className="border-gray-300 mb-3" />
-                    </React.Fragment>
-                ))
+                    ) : (
+                        products.map((product, index) => (
+                            <React.Fragment key={index}>
+                                <div className="grid lg:grid-cols-7 grid-cols-6 gap-2 items-center mb-3">
+                                    <div className="lg:col-span-3 col-span-2 flex items-center">
+                                        {product.image && (
+                                            <Image
+                                                src={product.image}
+                                                alt={product.name}
+                                                className="rounded hidden sm:block"
+                                                width={40}
+                                                height={40}
+                                            />
+                                        )}
+                                        <Link href={`/details?productName=${encodeURIComponent(product.name)}`} className="ml-2 text-xs">
+                                            {product.name}
+                                        </Link>
+                                    </div>
+                                    <div className='lg:pl-10 pr-5 text-xs'>₦{product.price.toFixed(2)}</div>
+                                    <div className='lg:pl-10 pl-5 text-xs'>{formatDate(product.created)}</div>
+                                    <div className='lg:pl-10 pl-5 text-xs'>{formatDate(product.updated)}</div>
+                                    <div className="text-right">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost">
+                                                    <Ellipsis />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent className="w-48 bg-white">
+                                                <DropdownMenuItem
+                                                    onClick={() => handleEditProduct(product)}
+                                                    className='cursor-pointer'>
+                                                    Edit Product
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={() => handleDeleteProduct(index)}
+                                                    className='cursor-pointer'>
+                                                    <p className='text-red-700'>Delete Product</p>
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
+                                </div>
+
+                                <hr className="border-gray-300 mb-3" />
+                            </React.Fragment>
+                        ))
+                    )}
+                </>
             )}
 
             <CustomSheet

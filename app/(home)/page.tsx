@@ -1,14 +1,10 @@
 import React from 'react'
 import ProductList from './products/page'
-import Filters from '@/components/filters/page'
 
 const Home = () => {
     return (
         <div>
-            <h2 className="text-2xl font-semibold my-6">Product Catalogue</h2>
-            <section className='md:hidden'>
-                <Filters />
-            </section>
+            <h2 className="text-2xl font-semibold mt-6">Product Catalogue</h2>
             <ProductList />
         </div>
     )
