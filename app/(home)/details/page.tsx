@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useSheetContext } from '@/context/SheetContext';
 import { useRouter } from 'next/navigation';
@@ -20,17 +19,9 @@ type Product = {
 };
 
 const ProductDetailsPage = () => {
-    const searchParams = useSearchParams();
-    const productName = searchParams.get('productName');
     const { isSheetOpen, setIsSheetOpen } = useSheetContext();
     const router = useRouter();
     const [product, setProduct] = useState<Product | null>(null);
-
-    useEffect(() => {
-        const storedProducts = JSON.parse(localStorage.getItem('products') || '[]') as Product[];
-        const foundProduct = storedProducts.find((p) => p.name === productName);
-        setProduct(foundProduct || null);
-    }, [productName]);
 
     const handleEditProduct = () => {
         setIsSheetOpen(true);
