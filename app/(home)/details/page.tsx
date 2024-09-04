@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useSheetContext } from '@/context/SheetContext';
 import { useRouter } from 'next/navigation';
@@ -18,10 +19,18 @@ type Product = {
     updated: string;
 };
 
-const ProductDetailsPage = () => {
+const ProductDetailsPageContent = () => {
+    const searchParams = useSearchParams();
+    const productName = searchParams.get('productName');
     const { isSheetOpen, setIsSheetOpen } = useSheetContext();
     const router = useRouter();
     const [product, setProduct] = useState<Product | null>(null);
+
+    useEffect(() => {
+        const storedProducts = JSON.parse(localStorage.getItem('products') || '[]') as Product[];
+        const foundProduct = storedProducts.find((p) => p.name === productName);
+        setProduct(foundProduct || null);
+    }, [productName]);
 
     const handleEditProduct = () => {
         setIsSheetOpen(true);
@@ -39,21 +48,21 @@ const ProductDetailsPage = () => {
         return <p className="text-center mt-4">Product not found.</p>;
     }
 
-    <Head>
-        <title>{product.name} - My Store</title>
-        <meta name="description" content={product.description} />
-        <meta property="og:title" content={product.name} />
-        <meta property="og:description" content={product.description} />
-        <meta property="og:image" content={product.image} />
-        <meta property="og:type" content="product" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={product.name} />
-        <meta name="twitter:description" content={product.description} />
-        <meta name="twitter:image" content={product.image} />
-    </Head>
-
     return (
         <>
+            <Head>
+                <title>{product.name} - My Store</title>
+                <meta name="description" content={product.description} />
+                <meta property="og:title" content={product.name} />
+                <meta property="og:description" content={product.description} />
+                <meta property="og:image" content={product.image} />
+                <meta property="og:type" content="product" />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content={product.name} />
+                <meta name="twitter:description" content={product.description} />
+                <meta name="twitter:image" content={product.image} />
+            </Head>
+
             <button onClick={() => router.back()} className="flex items-center my-5 text-gray-600 hover:text-gray-900">
                 <ArrowLeft size={20} className="mr-2" />
                 <span>Back</span>
@@ -102,6 +111,14 @@ const ProductDetailsPage = () => {
                 </CustomSheet>
             </div>
         </>
+    );
+};
+
+const ProductDetailsPage = () => {
+    return (
+        <Suspense fallback={<p>Loading...</p>}>
+            <ProductDetailsPageContent />
+        </Suspense>
     );
 };
 
