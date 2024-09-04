@@ -2,10 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ProductForm } from '@/components/productsForm';
 import { CustomSheet } from '@/components/sheet/Sheet';
 import Image from 'next/image';
-import { Ellipsis } from 'lucide-react';
+import { Ellipsis, Pencil, FileArchive, Trash } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -15,6 +14,9 @@ import {
 import { useSheetContext } from '@/context/SheetContext';
 import Link from 'next/link';
 import { SkeletonGrid } from '@/components/Skeleton';
+import Filters from '@/components/Filter';
+import { useFilter } from '@/context/FilterContext';
+import { ProductForm } from '@/components/productsForm';
 
 type Product = {
     name: string;
@@ -23,6 +25,7 @@ type Product = {
     price: number;
     created: string;
     updated: string;
+    isArchived: boolean;
 };
 
 const formatDate = (dateString: string) => {
@@ -35,13 +38,18 @@ const ProductList = () => {
     const [loading, setLoading] = useState(true);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const { isSheetOpen, setIsSheetOpen } = useSheetContext();
+    const { filter, sort } = useFilter();
 
     useEffect(() => {
-        setTimeout(() => {
+        const fetchProducts = () => {
             const storedProducts = JSON.parse(localStorage.getItem("products") || "[]") as Product[];
-            setProducts(storedProducts);
-            setLoading(false);
-        }, 1000);
+            setTimeout(() => {
+                setProducts(storedProducts);
+                setLoading(false);
+            },);
+        };
+
+        fetchProducts();
     }, []);
 
     const handleAddOrUpdateProduct = (product: Product) => {
@@ -70,13 +78,35 @@ const ProductList = () => {
         setIsSheetOpen(true);
     };
 
+    const handleArchiveProduct = (index: number) => {
+        const updatedProducts = products.map((product, i) =>
+            i === index ? { ...product, isArchived: !product.isArchived } : product
+        );
+        setProducts(updatedProducts);
+        localStorage.setItem("products", JSON.stringify(updatedProducts));
+    };
+
+    const filteredProducts = products.filter(product => {
+        if (filter === 'active') return !product.isArchived;
+        if (filter === 'archived') return product.isArchived;
+        return true;
+    }).sort((a, b) => {
+        if (sort === 'latest') return new Date(b.created).getTime() - new Date(a.created).getTime();
+        if (sort === 'oldest') return new Date(a.created).getTime() - new Date(b.created).getTime();
+        return 0;
+    });
+
     return (
         <div className="py-5">
+            <div className='md:hidden'>
+                <Filters />
+            </div>
+
             {loading ? (
                 <SkeletonGrid count={20} />
             ) : (
                 <>
-                    {products.length > 0 && (
+                    {filteredProducts.length > 0 && (
                         <>
                             <div className="grid lg:grid-cols-7 grid-cols-6 gap-2 text-left text-sm font-semibold mb-3">
                                 <div className="lg:col-span-3 col-span-2">Name</div>
@@ -91,21 +121,13 @@ const ProductList = () => {
                         </>
                     )}
 
-                    {products.length === 0 ? (
+                    {filteredProducts.length === 0 ? (
                         <div className="flex flex-col items-center justify-center lg:h-[20rem] h-[15rem] bg-white border rounded shadow-md mx-auto lg:w-[30rem] w-[22rem]">
-                            <h2 className="text-xl font-semibold mb-5">No products in inventory</h2>
-                            <p className="text-gray-500 mb-4 text-center">Start adding products to manage your inventory.</p>
-                            <Button
-                                onClick={() => {
-                                    setSelectedProduct(null);
-                                    setIsSheetOpen(true);
-                                }}
-                                className='bg-black text-white rounded-2xl hover:bg-black'>
-                                Add Product
-                            </Button>
+                            <h2 className="text-xl font-semibold mb-5 font-great-vibes">No products found</h2>
+                            <p className="text-gray-500 mb-4 text-center">No products match your filters.</p>
                         </div>
                     ) : (
-                        products.map((product, index) => (
+                        filteredProducts.map((product, index) => (
                             <React.Fragment key={index}>
                                 <div className="grid lg:grid-cols-7 grid-cols-6 gap-2 items-center mb-3">
                                     <div className="lg:col-span-3 col-span-2 flex items-center">
@@ -135,13 +157,18 @@ const ProductList = () => {
                                             <DropdownMenuContent className="w-48 bg-white">
                                                 <DropdownMenuItem
                                                     onClick={() => handleEditProduct(product)}
-                                                    className='cursor-pointer'>
-                                                    Edit Product
+                                                    className='cursor-pointer flex items-center'>
+                                                    <Pencil size={15} className="mr-5" /> Edit Product
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={() => handleArchiveProduct(index)}
+                                                    className='cursor-pointer flex items-center'>
+                                                    <FileArchive size={15} className="mr-5" /> {product.isArchived ? 'Unarchive Product' : 'Archive Product'}
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
                                                     onClick={() => handleDeleteProduct(index)}
-                                                    className='cursor-pointer'>
-                                                    <p className='text-red-700'>Delete Product</p>
+                                                    className='cursor-pointer flex items-center'>
+                                                    <Trash size={15} className="mr-5 text-red-700" /> <span className='text-red-700'>Delete Product</span>
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
