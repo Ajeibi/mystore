@@ -122,7 +122,7 @@ const ProductList = () => {
                     )}
 
                     {filteredProducts.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center lg:h-[20rem] h-[15rem] bg-white border rounded shadow-md mx-auto lg:w-[30rem] w-[22rem]">
+                        <div className="flex flex-col items-center justify-center lg:h-[20rem] h-[15rem] bg-white border rounded shadow-md mx-auto lg:w-[30rem] w-[18rem]">
                             <h2 className="text-xl font-semibold mb-5 font-great-vibes">No products found</h2>
                             <p className="text-gray-500 mb-4 text-center">No products match your filters.</p>
                         </div>
