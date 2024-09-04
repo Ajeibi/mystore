@@ -1,5 +1,5 @@
 module.exports = {
-    siteUrl: 'https://www.yourdomain.com',
+    siteUrl: 'https://mystore-zeta-eosin.vercel.app/',
     generateRobotsTxt: true,
     sitemapSize: 7000,
     outDir: './public',
